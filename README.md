@@ -1,56 +1,210 @@
-# RF-DETR Endoscopy (실시간 대장 내 용종 검출 시스템)
+<div align="center">
 
-건양대학교 창의적 종합설계 프로젝트 (Team 무엇이든지 안다우) - **RF-DETR 기반 실시간 의료 객체 탐지 데스크탑 애플리케이션**입니다.
+# 🩺 RF-DETR Endoscopy
 
-## 📌 프로젝트 소개 (Project Overview)
-본 프로젝트는 내시경(Endoscopy) 영상 및 웹캠 스트림에서 대장 내 용종(Polyp)을 실시간으로 추론 및 검출하는 **PyQt5 기반 소프트웨어**입니다. Roboflow Inference SDK(또는 Local Inference)를 연동하여 고성능 비전 모델(RF-DETR 등)을 실시간으로 서빙하며, 실제 임상/의료 환경에 맞춘 '스마트 자동 클립 추출' 및 'AI 예비 소견서 자동 생성' 기능을 탑재했습니다.
+### Real-time Polyp Detection Desktop Application
 
-## ✨ 핵심 기능 (Key Features)
+**대장 내시경 영상에서 용종을 실시간 탐지하고, 탐지 결과를 실제 사용 가능한 데스크톱 워크플로우로 연결한 의료 AI 프로젝트입니다.**
 
-1. **실시간 용종 탐지 (Real-Time Object Detection)**
-   - 웹캠(실시간 스트리밍) 및 로컬 동영상 파일(`.mp4`, `.avi` 등)을 입력 소스로 지원.
-   - 비동기 처리(QThread)를 통해 GUI 멈춤 없이 쾌적한 실시간 Bounding Box 렌더링.
+![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)
+![RF-DETR](https://img.shields.io/badge/Model-RF--DETR-7C3AED?style=flat-square)
+![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=flat-square&logo=opencv&logoColor=white)
+![PyQt5](https://img.shields.io/badge/GUI-PyQt5-41CD52?style=flat-square&logo=qt&logoColor=white)
 
-2. **스마트 하이라이트 클립 자동 추출 (Automated Clip Saving)**
-   - 용종이 설정된 시간(기본 4초) 이상 연속으로 탐지될 경우 이벤트로 간주.
-   - 감지 기점 전/후의 영상(기본 5초)을 덧붙인 **이벤트 하이라이트 비디오 클립**을 자동으로 추출하여 저장합니다.
+`Real-time Detection · Video Processing · Event Clip · AI Report · Desktop App`
 
-3. **AI 임상 소견서 자동 생성 (GPT-driven Clinical Report)**
-   - 스마트 클립이 추출될 때마다 OpenAI API를 백그라운드로 호출합니다.
-   - 환자 정보, 발견 시점, 병변의 신뢰도(Confidence) 데이터를 종합하여 작성된 **AI 예비 요약 보고서(.txt)**를 클립과 함께 자동 병합 저장합니다.
+</div>
 
-4. **환자 정보 관리 (Patient Info Management)**
-   - 환자의 이름, 나이, 성별, 생년월일 데이터를 입력받아 시스템에 연작.
-   - 실시간 화면 및 저장되는 영상/클립에 **데이터 오버레이(Data Overlay)**를 씌우며, 추후 `Excel` 혹은 `CSV` 포맷으로 정보 관리 로깅.
+---
 
-5. **수동 녹화 및 스냅샷 (Manual Recording & Snapshot)**
-   - `녹화 시작/종료` 버튼으로 수동 전체 영상 캡처 기능.
-   - 키보드 `S`키를 눌러 중요 순간을 고화질 캡처. 모든 데이터는 지정된 환자별 고유 폴더에 체계적으로 기록됩니다.
+## Why I built it
 
-## 🛠️ 기술 스택 (Tech Stack)
-- **Application Logic**: Python 3.x
-- **GUI Framework**: PyQt5
-- **Computer Vision**: OpenCV (`cv2`)
-- **Model Inference**: Roboflow Inference SDK (`inference`)
-- **Generative AI**: OpenAI API (for Auto Reporting)
-- **Data Export**: `csv`, `openpyxl`
+의료영상 AI 프로젝트에서 모델의 탐지 성능만 확인하는 것으로는 실제 사용 흐름을 충분히 보여주기 어렵다고 생각했습니다.
 
-## ⚙️ 실행 방법 및 환경 변수 (Installation & Configs)
+그래서 이 프로젝트에서는 **“용종을 찾는 모델”에서 끝내지 않고, 탐지 결과가 실제 애플리케이션에서 어떻게 사용되는지**까지 구현했습니다.
 
-### 1. 의존성 설치
+```text
+Endoscopy / Webcam
+        ↓
+RF-DETR Inference
+        ↓
+Real-time Bounding Box
+        ↓
+Detection Event
+        ├─ Highlight Clip
+        ├─ Patient Metadata
+        └─ Preliminary AI Report
+```
+
+핵심 목표는 **AI 추론 결과를 사용자가 바로 확인하고 기록할 수 있는 워크플로우로 연결하는 것**이었습니다.
+
+---
+
+## Project overview
+
+건양대학교 창의적 종합설계 프로젝트로 진행한 **RF-DETR 기반 실시간 의료 객체 탐지 데스크톱 애플리케이션**입니다.
+
+내시경 영상과 웹캠 스트림을 입력으로 받아 용종을 실시간으로 탐지하고, PyQt5 GUI에서 결과를 시각화합니다.
+
+추가로 연속 탐지 이벤트를 기준으로 하이라이트 영상을 저장하고, 선택적으로 AI 예비 보고서를 생성할 수 있도록 구성했습니다.
+
+---
+
+## Architecture
+
+```text
+┌──────────────────┐
+│ Video Input      │
+│ Webcam / File    │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ Inference Worker │
+│ RF-DETR          │
+└────────┬─────────┘
+         │
+         ├── Bounding Box
+         │
+         ▼
+┌──────────────────┐
+│ PyQt5 UI         │
+│ Real-time View   │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────┐
+│ Event Detection  │
+│ Continuous Polyp │
+└──────┬─────┬─────┘
+       │     │
+       │     └──── AI Preliminary Report
+       │
+       └────────── Highlight Video Clip
+```
+
+GUI와 추론 처리는 `QThread` 기반으로 분리하여 영상 추론 중에도 UI가 멈추지 않도록 구성했습니다.
+
+---
+
+## Key features
+
+### 1. Real-time polyp detection
+
+- 웹캠 실시간 스트림 지원
+- 로컬 영상 파일(`.mp4`, `.avi` 등) 지원
+- RF-DETR 기반 추론
+- 실시간 Bounding Box 렌더링
+- QThread 기반 비동기 처리
+
+### 2. Automatic highlight clip
+
+용종이 일정 시간 이상 연속으로 탐지되면 하나의 이벤트로 판단합니다.
+
+기본 설정:
+
+```text
+Continuous detection trigger: 4 sec
+Pre / Post event buffer:      5 sec
+```
+
+이벤트 전후 구간을 포함한 하이라이트 영상을 자동 저장합니다.
+
+### 3. AI preliminary report
+
+선택적으로 OpenAI API를 연결해 이벤트 발생 시 다음 데이터를 기반으로 예비 요약 보고서를 생성합니다.
+
+- 환자 정보
+- 탐지 시점
+- confidence
+- 이벤트 정보
+
+보고서는 하이라이트 클립과 함께 저장됩니다.
+
+> 생성 결과는 의료진의 최종 판단을 대체하는 진단 결과가 아니라 프로젝트 내 보조 기능입니다.
+
+### 4. Patient information management
+
+- 이름 / 나이 / 성별 / 생년월일 입력
+- 화면 및 저장 영상에 정보 overlay
+- 환자 단위 데이터 폴더 관리
+- CSV / Excel 기반 기록 확장 가능
+
+### 5. Manual recording & snapshot
+
+- 전체 영상 수동 녹화
+- 중요 순간 snapshot 저장
+- 환자별 결과 파일 관리
+
+---
+
+## Tech stack
+
+| Area | Stack |
+| --- | --- |
+| Language | Python 3.x |
+| Desktop GUI | PyQt5 |
+| Computer Vision | OpenCV |
+| Detection | RF-DETR / Roboflow Inference SDK |
+| Generative AI | OpenAI API — optional report generation |
+| Data Export | CSV · openpyxl |
+
+---
+
+## Installation
+
 ```bash
 pip install PyQt5 opencv-python inference-sdk openpyxl openai
 ```
 
-### 2. 주요 환경 변수 (Environment Variables)
-애플리케이션은 다양한 환경 변수를 통해 동작을 튜닝할 수 있습니다:
-- `ROBOFLOW_API_KEY` : 추론에 사용할 Roboflow API 키 (필수)
-- `OPENAI_API_KEY` : AI 보고서 생성용 API 키 (활성화 시 필수)
-- `RFDETR_CONFIDENCE` : 탐지 임계값 (기본값: `0.3`)
-- `RFDETR_CLIP_TRIGGER` : 스마트 클립 저장을 트리거할 최소 연속 인식 시간 단위(초) (기본값: `4`)
-- `RFDETR_ENABLE_REPORTS` : AI 보고서 생성 기능 활성화 여부 (`1` 설정 시 활성화)
+---
 
-### 3. 애플리케이션 실행
+## Environment variables
+
+```text
+ROBOFLOW_API_KEY=...
+OPENAI_API_KEY=...
+RFDETR_CONFIDENCE=0.3
+RFDETR_CLIP_TRIGGER=4
+RFDETR_ENABLE_REPORTS=0
+```
+
+| Variable | Purpose |
+| --- | --- |
+| `ROBOFLOW_API_KEY` | Roboflow inference 인증 |
+| `OPENAI_API_KEY` | AI report 활성화 시 사용 |
+| `RFDETR_CONFIDENCE` | Detection confidence threshold |
+| `RFDETR_CLIP_TRIGGER` | 연속 탐지 이벤트 기준 시간 |
+| `RFDETR_ENABLE_REPORTS` | AI report 활성화 여부 |
+
+---
+
+## Run
+
 ```bash
 python RFDETR_v3.py
 ```
+
+---
+
+## What this project focuses on
+
+이 프로젝트에서 중요하게 본 부분은 단순 모델 호출이 아니라 다음 연결 과정입니다.
+
+```text
+AI inference
+→ asynchronous application processing
+→ event definition
+→ video artifact generation
+→ user-facing workflow
+```
+
+즉, **Computer Vision 결과를 실제 소프트웨어 기능으로 연결하는 과정**을 구현한 프로젝트입니다.
+
+---
+
+<div align="center">
+
+**From detection results to a usable medical imaging workflow.**
+
+</div>
